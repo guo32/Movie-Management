@@ -12,9 +12,15 @@ public class UserViewer {
     private UserController userController;
     private UserDTO login;
 
+    private MovieViewer movieViewer;
+
     public UserViewer(Scanner scanner) {
         SCANNER = scanner;
         userController = new UserController();
+    }
+
+    public void setMovieViewer(MovieViewer movieViewer) {
+        this.movieViewer = movieViewer;
     }
 
     public void showMenu() {
@@ -87,7 +93,8 @@ public class UserViewer {
         int userChoice = ScannerUtil.nextInt(SCANNER, message, 1, 4);
         if (userChoice == 1) {
             // 영화 목록
-
+            movieViewer.showMenu();
+            showSystemMenu();
         } else if (userChoice == 2) {
             // 극장 목록
 
@@ -115,7 +122,7 @@ public class UserViewer {
 
     private void printUserInfo() {
         System.out.println("+---------------------+");
-        System.out.println(" * 아이디: " + login.getIdx());
+        System.out.println(" * 아이디: " + login.getUsername());
         System.out.println(" * 닉네임: " + login.getNickname());
         System.out.println("+---------------------+");
     }
@@ -135,7 +142,7 @@ public class UserViewer {
         } else {
             userController.update(userDTO);
             System.out.println("회원 정보를 수정했습니다.");
-            login = userDTO;
+            login = new UserDTO(userDTO);
         }
         showUserMenu();
     }
@@ -148,7 +155,6 @@ public class UserViewer {
             userController.delete(login.getIdx());
             System.out.println("탈퇴되었습니다.");
             login = null;
-            showMenu();
         } else {
             System.out.println("취소되었습니다.");
             showUserMenu();

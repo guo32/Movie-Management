@@ -10,6 +10,71 @@ public class MovieDTO {
     public MovieDTO() {}
 
     public MovieDTO(int idx) {
+        this.idx = idx;
+    }
 
+    public MovieDTO(String title, String content, int grade) {
+        this.title = title;
+        this.content = content;
+        this.grade = grade;
+    }
+
+    public MovieDTO(MovieDTO origin) {
+        idx = origin.idx;
+        title = origin.title;
+        content = origin.content;
+        grade = origin.grade;
+    }
+
+    // getter, setter
+    public int getIdx() {
+        return idx;
+    }
+
+    public void setIdx(int idx) {
+        this.idx = idx;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public int getGrade() {
+        return grade;
+    }
+
+    public void setGrade(int grade) {
+        this.grade = grade;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof MovieDTO) {
+            MovieDTO m = (MovieDTO) obj;
+            return idx == m.getIdx();
+        }
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "\"idx\": " + idx + ", " +
+                "\"title\": " + title + ", " +
+                "\"content\": " + content + ", " +
+                "\"grade\": " + grade +
+                "}";
     }
 }
