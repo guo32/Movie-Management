@@ -24,9 +24,9 @@ public class UserViewer {
             int userChoice = ScannerUtil.nextInt(SCANNER, message, 1, 3);
 
             if (userChoice == 1) { // 로그인
-                userLogin();
+                loginUser();
             } else if (userChoice == 2) { // 회원가입
-                userRegister();
+                registUser();
             } else if (userChoice == 3) { // 종료
                 System.out.println("시스템을 종료합니다.");
                 break;
@@ -34,7 +34,7 @@ public class UserViewer {
         }
     }
 
-    private void userLogin() {
+    private void loginUser() {
         while (true) {
             String message = "아이디를 입력해주세요.";
             String username = ScannerUtil.nextLine(SCANNER, message);
@@ -51,13 +51,13 @@ public class UserViewer {
                     break;
                 }
             } else {
-                showUserMenu();
+                showSystemMenu();
                 break;
             }
         }
     }
 
-    private void userRegister() {
+    private void registUser() {
         String message = "사용할 아이디를 입력해주세요. (4~10자)";
         String username = ScannerUtil.nextLine(SCANNER, message);
         String exp = "\\w{4,10}";
@@ -82,7 +82,76 @@ public class UserViewer {
         userController.insert(newUser);
     }
 
+    private void showSystemMenu() {
+        String message = "[1] 영화 [2] 극장 [3] 회원정보 [4] 로그아웃";
+        int userChoice = ScannerUtil.nextInt(SCANNER, message, 1, 4);
+        if (userChoice == 1) {
+            // 영화 목록
+
+        } else if (userChoice == 2) {
+            // 극장 목록
+
+        } else if (userChoice == 3) {
+            // 회원 정보 메뉴
+            showUserMenu();
+        } else if (userChoice == 4) {
+            System.out.println("정상적으로 로그아웃되었습니다.");
+            login = null;
+        }
+    }
+
     private void showUserMenu() {
-        String message = "[1] 영화 [2] 극장 [3] 회원정보수정 [4] 로그아웃";
+        printUserInfo();
+        String message = "[1] 수정 [2] 탈퇴 [3] 뒤로 가기";
+        int userChoice = ScannerUtil.nextInt(SCANNER, message, 1, 3);
+        if (userChoice == 1) {
+            updateUser();
+        } else if (userChoice == 2) {
+            deleteUser();
+        } else if (userChoice == 3) {
+            showSystemMenu();
+        }
+    }
+
+    private void printUserInfo() {
+        System.out.println("+---------------------+");
+        System.out.println(" * 아이디: " + login.getIdx());
+        System.out.println(" * 닉네임: " + login.getNickname());
+        System.out.println("+---------------------+");
+    }
+
+    private void updateUser() {
+        UserDTO userDTO = new UserDTO(login);
+        String message = "새 비밀번호를 입력해주세요.";
+        userDTO.setPassword(ScannerUtil.nextLine(SCANNER, message));
+
+        message = "새 닉네임을 입력해주세요.";
+        userDTO.setNickname(ScannerUtil.nextLine(SCANNER, message));
+
+        message = "기존 비밀번호를 입력해주세요.";
+        String password = ScannerUtil.nextLine(SCANNER, message);
+        if (!password.equals(login.getPassword())) {
+            System.out.println("회원 정보 변경에 실패했습니다.");
+        } else {
+            userController.update(userDTO);
+            System.out.println("회원 정보를 수정했습니다.");
+            login = userDTO;
+        }
+        showUserMenu();
+    }
+
+    private void deleteUser() {
+        String message = "정말로 탈퇴하시겠습니까?\n[Y] 예 [N] 아니오";
+        String yesNo = ScannerUtil.nextLine(SCANNER, message);
+
+        if (yesNo.equalsIgnoreCase("Y")) {
+            userController.delete(login.getIdx());
+            System.out.println("탈퇴되었습니다.");
+            login = null;
+            showMenu();
+        } else {
+            System.out.println("취소되었습니다.");
+            showUserMenu();
+        }
     }
 }
