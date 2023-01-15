@@ -13,6 +13,7 @@ public class UserViewer {
     private UserDTO login;
 
     private MovieViewer movieViewer;
+    private TheaterView theaterView;
 
     public UserViewer(Scanner scanner) {
         SCANNER = scanner;
@@ -21,6 +22,10 @@ public class UserViewer {
 
     public void setMovieViewer(MovieViewer movieViewer) {
         this.movieViewer = movieViewer;
+    }
+
+    public void setTheaterView(TheaterView theaterView) {
+        this.theaterView = theaterView;
     }
 
     public void showMenu() {
@@ -97,7 +102,8 @@ public class UserViewer {
             showSystemMenu();
         } else if (userChoice == 2) {
             // 극장 목록
-
+            theaterView.showMenu();
+            showSystemMenu();
         } else if (userChoice == 3) {
             // 회원 정보 메뉴
             showUserMenu();

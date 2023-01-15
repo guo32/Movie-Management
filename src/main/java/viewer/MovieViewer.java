@@ -64,8 +64,8 @@ public class MovieViewer {
         System.out.println(" " + movieDTO.getContent());
         System.out.println("+===============================+");
 
-        String message = "[1] 전체 평점 [2] 평론가 평점/평론 [3] 일반 관람객 평점 [4] 영화 목록으로";
-        int userChoice = ScannerUtil.nextInt(SCANNER, message, 1, 3);
+        String message = "[1] 평점 [2] 영화 목록으로";
+        int userChoice = ScannerUtil.nextInt(SCANNER, message, 1, 2);
         // 평점 추가 후 수정
 
         printMovieList();
