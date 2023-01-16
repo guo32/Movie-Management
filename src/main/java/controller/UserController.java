@@ -5,11 +5,6 @@ import model.UserDTO;
 import java.util.ArrayList;
 
 public class UserController {
-    // 사용자 등급 상수
-    private final int GENERAL = 1;
-    private final int REVIEWER = 2;
-    private final int MANAGER = 3;
-
     private ArrayList<UserDTO> list; // DB: 회원 객체 저장
     private int nextId; // auto increment
 
@@ -22,7 +17,6 @@ public class UserController {
     // 회원 삽입
     public void insert(UserDTO userDTO) {
         userDTO.setIdx(nextId++);
-        userDTO.setGrade(GENERAL);
         list.add(userDTO);
     }
 

@@ -45,17 +45,11 @@ public class RatingController {
     }
 
     // movie idx 검색 후 review list 반환
-    public ArrayList<RatingDTO> selectByMovieIdx(int movieIdx, int userGrade) {
+    public ArrayList<RatingDTO> selectByMovieIdx(int movieIdx) {
         ArrayList<RatingDTO> temp = new ArrayList<>();
         for (RatingDTO r : list) {
             if (r.getMovieIdx() == movieIdx) {
-                if (userGrade == 1 && r.getReview() == null) { // 일반
-                    temp.add(new RatingDTO(r));
-                } else if (userGrade == 2 && r.getReview() != null) { // 평론가
-                    temp.add(new RatingDTO(r));
-                } else if (userGrade == 0) { // 전체
-                    temp.add(new RatingDTO(r));
-                }
+                temp.add(new RatingDTO(r));
             }
         }
         return temp;

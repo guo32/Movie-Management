@@ -14,10 +14,11 @@ public class UserDTO {
         this.idx = idx;
     }
 
-    public UserDTO(String username, String password, String nickname) {
+    public UserDTO(String username, String password, String nickname, int grade) {
         this.username = username;
         this.password = password;
         this.nickname = nickname;
+        this.grade = grade;
     }
 
     public UserDTO(UserDTO origin) {

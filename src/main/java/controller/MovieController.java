@@ -14,7 +14,7 @@ public class MovieController {
     }
 
     public void insert(MovieDTO movieDTO) {
-        movieDTO.setIdx(nextId);
+        movieDTO.setIdx(nextId++);
         list.add(movieDTO);
     }
 
