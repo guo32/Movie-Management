@@ -2,6 +2,7 @@ package viewer;
 
 import controller.MovieController;
 import controller.TheaterController;
+import model.MovieDTO;
 import model.TheaterDTO;
 import model.UserDTO;
 import util.ScannerUtil;
@@ -11,6 +12,7 @@ import java.util.Scanner;
 
 public class TheaterView {
     private final Scanner SCANNER;
+    private final int MANAGER = 3;
     private final TheaterController theaterController;
     private MovieController movieController;
     private ScreenInfoViewer screenInfoViewer;
@@ -19,6 +21,10 @@ public class TheaterView {
     public TheaterView(Scanner scanner) {
         SCANNER = scanner;
         theaterController = new TheaterController();
+
+        for (int i = 1; i < 5; i++) {
+            theaterController.insert(new TheaterDTO(i + "번째 극장", "서울시 " + i + "동", "123-1234-1234"));
+        }
     }
 
     public void setMovieController(MovieController movieController) {
@@ -96,15 +102,63 @@ public class TheaterView {
         System.out.println(" [번호] " + theaterDTO.getTelephone());
         System.out.println("+===============================+");
 
-        String message = "[1] 상영 중인 영화 [2] 뒤로 가기";
-        int userChoice = ScannerUtil.nextInt(SCANNER, message, 1, 2);
+        String message;
+        int userChoice = 0;
+        if (login.getGrade() == MANAGER) {
+            message = "[1] 수정 [2] 삭제 [3] 상영 중인 영화 [4] 뒤로 가기";
+            userChoice = ScannerUtil.nextInt(SCANNER, message, 1, 4);
+        } else {
+            message = "[3] 상영 중인 영화 [4] 뒤로 가기";
+            userChoice = ScannerUtil.nextInt(SCANNER, message, 3, 4);
+        }
+
         if (userChoice == 1) {
+            // 극장 정보 수정
+            updateTheater(idx);
+        } else if (userChoice == 2) {
+            // 극장 삭제
+            deleteTheater(idx);
+        } else if (userChoice == 3) {
             // 상영 중인 영화
             screenInfoViewer.setLogin(login);
             screenInfoViewer.setMovieController(movieController);
             screenInfoViewer.showScreenInfoListForTheater(idx);
-        } else if (userChoice == 2) {
+        } else if (userChoice == 4) {
             printTheaterList();
+        }
+    }
+
+    private void updateTheater(int idx) {
+        TheaterDTO theaterDTO = theaterController.selectByIdx(idx);
+        String message = "수정할 극장 이름을 입력해주세요.";
+        theaterDTO.setName(ScannerUtil.nextLine(SCANNER, message));
+
+        message = "수정할 극장 주소를 입력해주세요.";
+        theaterDTO.setLocation(ScannerUtil.nextLine(SCANNER, message));
+
+        message = "수정할 극장 전화번호를 입력해주세요.";
+        String telephone = ScannerUtil.nextLine(SCANNER, message);
+        while (telephone.matches("\\d{2,3}-\\d{3,4}-\\d{4}")) {
+            System.out.println("잘못 입력했습니다. 형식을 확인해주세요.");
+            telephone = ScannerUtil.nextLine(SCANNER, message);
+        }
+        theaterDTO.setTelephone(telephone);
+
+        theaterController.update(theaterDTO);
+        System.out.println("정상적으로 수정되었습니다.");
+        printTheaterInfo(idx);
+    }
+
+    private void deleteTheater(int idx) {
+        String message = "정말로 삭제하시겠습니까?\n[Y] 삭제 [N] 취소";
+        String yesNo = ScannerUtil.nextLine(SCANNER, message);
+        if (yesNo.equalsIgnoreCase("Y")) {
+            theaterController.delete(idx);
+            System.out.println("정상적으로 삭제되었습니다.");
+            printTheaterList();
+        } else {
+            System.out.println("취소되었습니다.");
+            printTheaterInfo(idx);
         }
     }
 }

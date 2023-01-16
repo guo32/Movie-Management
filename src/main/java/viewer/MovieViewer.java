@@ -31,6 +31,10 @@ public class MovieViewer {
     public MovieViewer(Scanner scanner) {
         SCANNER = scanner;
         movieController = new MovieController();
+
+        for (int i = 1; i < 5; i++) {
+            movieController.insert(new MovieDTO(i + "번째 영화", i + "번째 영화 스토리", VIEW12));
+        }
     }
 
     public void setRatingViewer(RatingViewer ratingViewer) {

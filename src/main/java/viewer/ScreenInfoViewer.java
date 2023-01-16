@@ -54,16 +54,69 @@ public class ScreenInfoViewer {
             if (userChoice == 1) {
                 registerScreenInfo(theaterIdx);
             } else if (userChoice == 2) {
-                updateScreenInfo();
+                // 수정
+                message = "수정할 상영 정보 번호를 입력해주세요.\n[입력] 수정 [0] 뒤로 가기";
+                int select = ScannerUtil.nextInt(SCANNER, message);
+                while (select != 0 && screenInfoController.selectByIdx(select) == null) {
+                    System.out.println("존재하지 않는 상영 정보 번호입니다.");
+                    select = ScannerUtil.nextInt(SCANNER, message);
+                }
+                if (select != 0) {
+                    updateScreenInfo(select);
+                } else {
+                    showScreenInfoListForTheater(theaterIdx);
+                }
             } else if (userChoice == 3) {
-
+                // 삭제
+                message = "삭제할 상영 정보 번호를 입력해주세요.\n[입력] 삭제 [0] 뒤로 가기";
+                int select = ScannerUtil.nextInt(SCANNER, message);
+                while (select != 0 && screenInfoController.selectByIdx(select) == null) {
+                    System.out.println("존재하지 않는 상영 정보 번호입니다.");
+                    select = ScannerUtil.nextInt(SCANNER, message);
+                }
+                if (select != 0) {
+                    deleteScreenInfo(select);
+                    showScreenInfoListForTheater(theaterIdx);
+                } else {
+                    showScreenInfoListForTheater(theaterIdx);
+                }
             }
         }
         theaterView.showMenu();
     }
 
-    private void updateScreenInfo() {
+    private void updateScreenInfo(int idx) {
+        ScreenInfoDTO screenInfoDTO = screenInfoController.selectByIdx(idx);
+        String regex = "([0-1][0-9]|2[0-4]):([0-5][0-9])";
 
+        String message = "영화 시작 시간을 입력해주세요.(HH:mm)";
+        String startTime = ScannerUtil.nextLine(SCANNER, message);
+        while (!startTime.matches(regex)) {
+            System.out.println("잘못된 입력입니다. 형식을 확인해주세요.");
+            startTime = ScannerUtil.nextLine(SCANNER, message);
+        }
+        message = "영화 종료 시간을 입력해주세요. (HH:mm)";
+        String endTime = ScannerUtil.nextLine(SCANNER, message);
+        while (!endTime.matches(regex)) {
+            System.out.println("잘못된 입력입니다. 형식을 확인해주세요.");
+            endTime = ScannerUtil.nextLine(SCANNER, message);
+        }
+        String playtime = startTime + " ~ " + endTime;
+        screenInfoDTO.setPlaytime(playtime);
+        System.out.println("정상적으로 수정되었습니다.");
+
+        showScreenInfoListForTheater(screenInfoDTO.getTheaterIdx());
+    }
+
+    private void deleteScreenInfo(int idx) {
+        String message = "정말로 삭제하시겠습니까?\n[Y] 삭제 [N] 취소";
+        String yesNo = ScannerUtil.nextLine(SCANNER, message);
+        if (yesNo.equalsIgnoreCase("Y")) {
+            screenInfoController.delete(idx);
+            System.out.println("정상적으로 삭제되었습니다.");
+        } else {
+            System.out.println("취소되었습니다.");
+        }
     }
 
     private void registerScreenInfo(int theaterIdx) {

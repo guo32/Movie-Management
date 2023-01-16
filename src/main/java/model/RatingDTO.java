@@ -13,9 +13,9 @@ public class RatingDTO {
         this.idx = idx;
     }
 
-    public RatingDTO(int registerIdx, int movieIdx, int rating, String review) {
-        this.registerIdx = registerIdx;
+    public RatingDTO(int movieIdx, int registerIdx, int rating, String review) {
         this.movieIdx = movieIdx;
+        this.registerIdx = registerIdx;
         this.rating = rating;
         this.review = review;
     }
