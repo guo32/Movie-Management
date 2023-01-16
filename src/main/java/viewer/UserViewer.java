@@ -176,9 +176,14 @@ public class UserViewer {
             int select = ScannerUtil.nextInt(SCANNER, message, 0, 1);
             if (select == 1) {
                 updateUserGrade(userChoice);
+                showManageUserMenu();
+            } else {
+                showManageUserMenu();
             }
+        } else {
+            showManageUserMenu();
         }
-        showManageUserMenu();
+
     }
 
     private void printUserInfo(UserDTO userDTO) {
@@ -203,7 +208,7 @@ public class UserViewer {
 
         userController.update(userDTO);
         System.out.println("성공적으로 변경되었습니다.");
-        printUserList();
+        printUserInfo(userDTO);
     }
 
     private void updateUser() {

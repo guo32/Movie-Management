@@ -138,8 +138,8 @@ public class TheaterView {
 
         message = "수정할 극장 전화번호를 입력해주세요.";
         String telephone = ScannerUtil.nextLine(SCANNER, message);
-        while (telephone.matches("\\d{2,3}-\\d{3,4}-\\d{4}")) {
-            System.out.println("잘못 입력했습니다. 형식을 확인해주세요.");
+        while (!telephone.matches("\\d{2,3}-\\d{3,4}-\\d{4}")) {
+            System.out.println("잘못된 입력입니다. 형식을 확인해주세요.");
             telephone = ScannerUtil.nextLine(SCANNER, message);
         }
         theaterDTO.setTelephone(telephone);

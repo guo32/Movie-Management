@@ -54,4 +54,14 @@ public class RatingController {
         }
         return temp;
     }
+
+    // movie idx 별 전체 평점 평균 계산
+    public double calculateAverageRatingByMovie(int movieIdx) {
+        ArrayList<RatingDTO> temp = selectByMovieIdx(movieIdx);
+        int sum = 0;
+        for (RatingDTO r : temp) {
+            sum += r.getRating();
+        }
+        return (double)sum / temp.size();
+    }
 }

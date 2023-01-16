@@ -62,6 +62,8 @@ public class RatingViewer {
     private void printAllReviewList(int movieIdx) {
         // 0: 전체 1: 일반 2: 평론가
         ArrayList<RatingDTO> list = ratingController.selectByMovieIdx(movieIdx);
+        System.out.println("+===========================================+");
+        System.out.println(" < 평균 " + ratingController.calculateAverageRatingByMovie(movieIdx) + "점 >");
         System.out.println("+-------------------------------------------+");
         if (list.isEmpty()) {
             System.out.println(" * 등록된 평점이 없습니다.");
@@ -70,13 +72,31 @@ public class RatingViewer {
             for (RatingDTO r : list) {
                 // 등록자의 닉네임을 보여주기 위해서 UserViewer 연결해주기
                 // 등록자의 등급을 확인하여 관리자인 경우 상세보기 활성화 시켜야 함
-                String ratingInfo = " * [" + r.getIdx() + "] " + r.getRating() + "점 - " + userController.selectByIdx(r.getRegisterIdx()).getUsername();
-                if (r.getRegisterIdx() == login.getIdx()) {
+                // String ratingInfo = " * [" + r.getIdx() + "] " + r.getRating() + "점 - " + userController.selectByIdx(r.getRegisterIdx()).getUsername();
+                String ratingInfo = " * [" + r.getIdx() + "] " + r.getRating() + "점 - " + userController.selectByIdx(r.getRegisterIdx()).getNickname();
+                if (r.getRegisterIdx() == login.getIdx() || login.getGrade() == MANAGER) {
                     ratingInfo += " (수정/삭제)";
                 }
                 System.out.println(ratingInfo);
                 System.out.println("+-------------------------------------------+");
             }
+        }
+        // 관리자 권한 추가해줘야 함 230116
+        String message = "수정하거나 삭제할 평점의 번호를 입력해주세요.\n[입력] 수정/삭제 [0] 뒤로 가기";
+        int userChoice = ScannerUtil.nextInt(SCANNER, message);
+        while (userChoice != 0 && (ratingController.selectByIdx(userChoice) == null || ratingController.selectByIdx(userChoice).getRegisterIdx() != login.getIdx())) {
+            System.out.println("권한이 없는 평점의 번호입니다.");
+            userChoice = ScannerUtil.nextInt(SCANNER, message);
+        }
+        if (userChoice != 0) {
+            message = "[1] 수정 [2] 삭제 [0] 뒤로 가기";
+            int select = ScannerUtil.nextInt(SCANNER, message, 0, 2);
+            if (select == 1) {
+                updateReview(userChoice);
+            } else if (select == 2) {
+                deleteRating(userChoice);
+            }
+            printAllReviewList(movieIdx);
         }
         showMenu(movieIdx, login);
     }
@@ -87,7 +107,7 @@ public class RatingViewer {
         System.out.println("+-------------------------------------------+");
         for (RatingDTO r : list) {
             if (userController.selectByIdx(r.getRegisterIdx()).getGrade() == REVIEWER) {
-                System.out.println(" * [" + r.getIdx() + "] " + r.getRating() + "점 - " + userController.selectByIdx(r.getRegisterIdx()).getUsername());
+                System.out.println(" * [" + r.getIdx() + "] " + r.getRating() + "점 - " + userController.selectByIdx(r.getRegisterIdx()).getNickname());
                 System.out.println("+-------------------------------------------+");
                 num++;
             }
@@ -115,13 +135,13 @@ public class RatingViewer {
     private void printReviewerReview(int idx) {
         RatingDTO ratingDTO = ratingController.selectByIdx(idx);
         System.out.println("+===============================+");
-        System.out.println(" [작성자] " + userController.selectByIdx(ratingDTO.getRegisterIdx()).getUsername());
+        System.out.println(" [작성자] " + userController.selectByIdx(ratingDTO.getRegisterIdx()).getNickname());
         System.out.println(" [평점] " + ratingDTO.getRating() + "점");
         System.out.println("+-------------------------------+");
         System.out.println(" [평론]");
         System.out.println(" " + ratingDTO.getReview());
         System.out.println("+===============================+");
-        if (ratingDTO.getRegisterIdx() == idx) {
+        if (ratingDTO.getRegisterIdx() == idx || login.getGrade() == MANAGER) {
             String message = "[1] 수정 [2] 삭제 [0] 뒤로 가기";
             int userChoice = ScannerUtil.nextInt(SCANNER, message, 0, 2);
             if (userChoice == 1) {
@@ -131,6 +151,8 @@ public class RatingViewer {
             } else if (userChoice == 2) {
                 // 삭제
                 deleteReview(idx);
+            } else {
+                printGeneralRatingList(ratingDTO.getMovieIdx());
             }
         }
     }
@@ -170,8 +192,8 @@ public class RatingViewer {
             // 등록자의 닉네임을 보여주기 위해서 UserViewer 연결해주기
             // 등록자의 등급을 확인하여 관리자인 경우 상세보기 활성화 시켜야 함
             if (userController.selectByIdx(r.getRegisterIdx()).getGrade() == GENERAL) {
-                String ratingInfo = " * [" + r.getIdx() + "] " + r.getRating() + "점 - " + userController.selectByIdx(r.getRegisterIdx()).getUsername();
-                if (r.getRegisterIdx() == login.getIdx()) {
+                String ratingInfo = " * [" + r.getIdx() + "] " + r.getRating() + "점 - " + userController.selectByIdx(r.getRegisterIdx()).getNickname();
+                if (r.getRegisterIdx() == login.getIdx() || login.getGrade() == MANAGER) {
                     ratingInfo += " (수정/삭제)";
                 }
                 System.out.println(ratingInfo);
@@ -184,6 +206,7 @@ public class RatingViewer {
             System.out.println("+-------------------------------------------+");
         }
         // 수정, 삭제 이후 추가할 것
+        // 관리자 권한 추가해줘야 함 230116
         String message = "수정하거나 삭제할 평점의 번호를 입력해주세요.\n[입력] 수정/삭제 [0] 뒤로 가기";
         int userChoice = ScannerUtil.nextInt(SCANNER, message);
         while (userChoice != 0 && (ratingController.selectByIdx(userChoice) == null || ratingController.selectByIdx(userChoice).getRegisterIdx() != login.getIdx())) {
