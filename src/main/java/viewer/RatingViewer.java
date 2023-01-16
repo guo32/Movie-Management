@@ -45,16 +45,27 @@ public class RatingViewer {
     }
 
     public void registerReview(int movieIdx) {
-        String message = "해당 영화의 평점을 입력해주세요. (1~10점)";
-        int rating = ScannerUtil.nextInt(SCANNER, message, 1, 10);
-        String review = "";
-        if (login.getGrade() == REVIEWER) {
-            message = "해당 영화의 평론을 입력해주세요.";
-            review = ScannerUtil.nextLine(SCANNER, message);
+        boolean flag = false;
+        ArrayList<RatingDTO> temp = ratingController.selectByMovieIdx(movieIdx);
+        for (RatingDTO r : temp) {
+            if (r.getRegisterIdx() == login.getIdx()) {
+                flag = true;
+            }
         }
+        if (!flag) {
+            String message = "해당 영화의 평점을 입력해주세요. (1~10점)";
+            int rating = ScannerUtil.nextInt(SCANNER, message, 1, 10);
+            String review = "";
+            if (login.getGrade() == REVIEWER) {
+                message = "해당 영화의 평론을 입력해주세요.";
+                review = ScannerUtil.nextLine(SCANNER, message);
+            }
 
-        ratingController.insert(new RatingDTO(movieIdx, login.getIdx(), rating, review));
-        System.out.println("정상적으로 등록되었습니다.");
+            ratingController.insert(new RatingDTO(movieIdx, login.getIdx(), rating, review));
+            System.out.println("정상적으로 등록되었습니다.");
+        } else {
+            System.out.println("이미 해당 영화에 평점을 입력하셨습니다.");
+        }
 
         showMenu(movieIdx, login);
     }
