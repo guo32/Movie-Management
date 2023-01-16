@@ -220,7 +220,9 @@ public class RatingViewer {
         // 관리자 권한 추가해줘야 함 230116
         String message = "수정하거나 삭제할 평점의 번호를 입력해주세요.\n[입력] 수정/삭제 [0] 뒤로 가기";
         int userChoice = ScannerUtil.nextInt(SCANNER, message);
-        while (userChoice != 0 && (ratingController.selectByIdx(userChoice) == null || ratingController.selectByIdx(userChoice).getRegisterIdx() != login.getIdx())) {
+        while (userChoice != 0 &&
+                (ratingController.selectByIdx(userChoice) == null ||
+                        ratingController.selectByIdx(userChoice).getRegisterIdx() != login.getIdx())) {
             System.out.println("권한이 없는 평점의 번호입니다.");
             userChoice = ScannerUtil.nextInt(SCANNER, message);
         }
