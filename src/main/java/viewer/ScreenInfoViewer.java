@@ -82,7 +82,6 @@ public class ScreenInfoViewer {
                 }
             }
         }
-        theaterView.showMenu();
     }
 
     private void updateScreenInfo(int idx) {

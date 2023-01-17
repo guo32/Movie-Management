@@ -1,6 +1,10 @@
 package viewer;
 
+import controller.GradeRequestController;
+import controller.RatingController;
 import controller.UserController;
+import model.GradeRequestDTO;
+import model.RatingDTO;
 import model.UserDTO;
 import util.ScannerUtil;
 
@@ -15,10 +19,12 @@ public class UserViewer {
     private final Scanner SCANNER;
 
     private UserController userController;
+    private GradeRequestController gradeRequestController;
     private UserDTO login;
 
     private MovieViewer movieViewer;
     private TheaterView theaterView;
+    private GradeRequestViewer gradeRequestViewer;
 
     public UserViewer(Scanner scanner) {
         SCANNER = scanner;
@@ -32,6 +38,14 @@ public class UserViewer {
 
     public void setTheaterView(TheaterView theaterView) {
         this.theaterView = theaterView;
+    }
+
+    public void setGradeRequestViewer(GradeRequestViewer gradeRequestViewer) {
+        this.gradeRequestViewer = gradeRequestViewer;
+    }
+
+    public void setGradeRequestController(GradeRequestController gradeRequestController) {
+        this.gradeRequestController = gradeRequestController;
     }
 
     public void showMenu() {
@@ -136,22 +150,41 @@ public class UserViewer {
 
     private void showUserMenu() {
         printUserInfo(login);
-        String message = "[1] 수정 [2] 탈퇴 [3] 뒤로 가기";
-        int userChoice = ScannerUtil.nextInt(SCANNER, message, 1, 3);
+        String message;
+        int userChoice = 0;
+        if (login.getGrade() != MANAGER) {
+            message = "[1] 수정 [2] 탈퇴 [3] 등업 [0] 뒤로 가기";
+            userChoice = ScannerUtil.nextInt(SCANNER, message, 0, 3);
+        } else {
+            message = "[1] 수정 [2] 탈퇴 [0] 뒤로 가기";
+            userChoice = ScannerUtil.nextInt(SCANNER, message, 0, 2);
+        }
+
         if (userChoice == 1) {
             updateUser();
         } else if (userChoice == 2) {
             deleteUser();
         } else if (userChoice == 3) {
+            // 등업
+            gradeRequestViewer.setLogin(login);
+            gradeRequestViewer.setUserController(userController);
+            gradeRequestViewer.showMenu();
+            showUserMenu();
+        } else if (userChoice == 0) {
             showSystemMenu();
         }
     }
 
     private void showManageUserMenu() {
-        String message = "[1] 회원 목록 [0] 뒤로 가기";
-        int userChoice = ScannerUtil.nextInt(SCANNER, message, 0, 1);
+        String message = "[1] 회원 목록 [2] 등업 관리 [0] 뒤로 가기";
+        int userChoice = ScannerUtil.nextInt(SCANNER, message, 0, 2);
         if (userChoice == 1) {
             printUserList();
+        } else if (userChoice == 2) {
+            gradeRequestViewer.setLogin(login);
+            gradeRequestViewer.setUserController(userController);
+            gradeRequestViewer.showMenu();
+            showManageUserMenu();
         } else {
             showSystemMenu();
         }
@@ -213,8 +246,13 @@ public class UserViewer {
 
     private void updateUser() {
         UserDTO userDTO = new UserDTO(login);
-        String message = "새 비밀번호를 입력해주세요.";
-        userDTO.setPassword(ScannerUtil.nextLine(SCANNER, message));
+        String message = "새 비밀번호를 입력해주세요. (4~10자)";
+        String newPassword = ScannerUtil.nextLine(SCANNER, message);
+        while (!newPassword.matches("\\w{4,10}")) {
+            System.out.println("비밀번호는 4자 이상 10자 이하로 입력할 수 있습니다.");
+            newPassword = ScannerUtil.nextLine(SCANNER, message);
+        }
+        userDTO.setPassword(newPassword);
 
         message = "새 닉네임을 입력해주세요.";
         userDTO.setNickname(ScannerUtil.nextLine(SCANNER, message));
@@ -236,9 +274,35 @@ public class UserViewer {
         String yesNo = ScannerUtil.nextLine(SCANNER, message);
 
         if (yesNo.equalsIgnoreCase("Y")) {
-            userController.delete(login.getIdx());
-            System.out.println("탈퇴되었습니다.");
-            login = null;
+            // 기본 관리자 탈퇴 방지
+            if (login.getUsername().equals("admin")) {
+                System.out.println("기본 관리자는 탈퇴할 수 없습니다.");
+                showUserMenu();
+            } else {
+                // 탈퇴한 회원의 평점 처리
+                RatingController ratingController = new RatingController();
+                ArrayList<RatingDTO> temp = ratingController.selectAll();
+                if (temp != null) {
+                    for (RatingDTO r : temp) {
+                        if (r.getRegisterIdx() == login.getIdx()) {
+                            ratingController.delete(r.getIdx());
+                        }
+                    }
+                }
+
+                // 탈퇴한 회원의 등업 신청 목록 처리
+                if (gradeRequestController != null) {
+                    GradeRequestDTO gradeRequestDTO = gradeRequestController.selectByUserIdx(login.getIdx());
+                    if (gradeRequestDTO != null) {
+                        gradeRequestController.delete(gradeRequestDTO.getIdx());
+                    }
+                }
+
+                userController.delete(login.getIdx());
+
+                System.out.println("탈퇴되었습니다.");
+                login = null;
+            }
         } else {
             System.out.println("취소되었습니다.");
             showUserMenu();

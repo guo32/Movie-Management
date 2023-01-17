@@ -171,6 +171,8 @@ public class MovieViewer {
         String message = "정말로 삭제하시겠습니까?\n[Y] 삭제 [N] 취소";
         String yesNo = ScannerUtil.nextLine(SCANNER, message);
         if (yesNo.equalsIgnoreCase("Y")) {
+            // 영화 삭제 시 상영 정보 삭제
+
             movieController.delete(idx);
             System.out.println("정상적으로 삭제되었습니다.");
             printMovieList();

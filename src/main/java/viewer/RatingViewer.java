@@ -17,6 +17,7 @@ public class RatingViewer {
     private final Scanner SCANNER;
     private final RatingController ratingController;
     private UserController userController;
+    private UserViewer userViewer;
 
     private UserDTO login;
 
@@ -29,10 +30,22 @@ public class RatingViewer {
         this.userController = userController;
     }
 
+    public void setUserViewer(UserViewer userViewer) {
+        this.userViewer = userViewer;
+    }
+
     public void showMenu(int movieIdx, UserDTO login) {
         this.login = login;
-        String message = "[1] 평점 등록 [2] 전체 평점 [3] 평론가 평점/평론 [4] 일반 관람객 평점 [5] 뒤로 가기";
-        int userChoice = ScannerUtil.nextInt(SCANNER, message, 1, 5);
+        String message;
+        int userChoice;
+        if (login.getGrade() == MANAGER) {
+            message = "[2] 전체 평점 [3] 평론가 평점/평론 [4] 일반 관람객 평점 [5] 뒤로 가기";
+            userChoice = ScannerUtil.nextInt(SCANNER, message, 2, 5);
+        } else {
+            message = "[1] 평점 등록 [2] 전체 평점 [3] 평론가 평점/평론 [4] 일반 관람객 평점 [5] 뒤로 가기";
+            userChoice = ScannerUtil.nextInt(SCANNER, message, 1, 5);
+        }
+
         if(userChoice == 1) {
             registerReview(movieIdx);
         } else if (userChoice == 2) {
@@ -47,11 +60,14 @@ public class RatingViewer {
     public void registerReview(int movieIdx) {
         boolean flag = false;
         ArrayList<RatingDTO> temp = ratingController.selectByMovieIdx(movieIdx);
-        for (RatingDTO r : temp) {
-            if (r.getRegisterIdx() == login.getIdx()) {
-                flag = true;
+        if (!temp.isEmpty()) {
+            for (RatingDTO r : temp) {
+                if (r.getRegisterIdx() == login.getIdx()) {
+                    flag = true;
+                }
             }
         }
+
         if (!flag) {
             String message = "해당 영화의 평점을 입력해주세요. (1~10점)";
             int rating = ScannerUtil.nextInt(SCANNER, message, 1, 10);
@@ -92,10 +108,12 @@ public class RatingViewer {
                 System.out.println("+-------------------------------------------+");
             }
         }
-        // 관리자 권한 추가해줘야 함 230116
+        // 관리자 권한 추가함
         String message = "수정하거나 삭제할 평점의 번호를 입력해주세요.\n[입력] 수정/삭제 [0] 뒤로 가기";
         int userChoice = ScannerUtil.nextInt(SCANNER, message);
-        while (userChoice != 0 && (ratingController.selectByIdx(userChoice) == null || ratingController.selectByIdx(userChoice).getRegisterIdx() != login.getIdx())) {
+        while (userChoice != 0 &&
+                (ratingController.selectByIdx(userChoice) == null ||
+                        (ratingController.selectByIdx(userChoice).getRegisterIdx() != login.getIdx()) && login.getGrade() != MANAGER)) {
             System.out.println("권한이 없는 평점의 번호입니다.");
             userChoice = ScannerUtil.nextInt(SCANNER, message);
         }
@@ -108,13 +126,17 @@ public class RatingViewer {
                 deleteRating(userChoice);
             }
             printAllReviewList(movieIdx);
+        } else {
+            showMenu(movieIdx, login);
         }
-        showMenu(movieIdx, login);
     }
 
     private void printReviewerReviewList(int movieIdx) {
         ArrayList<RatingDTO> list = ratingController.selectByMovieIdx(movieIdx);
+        double average = calculateAverageRatingByUserGrade(list, REVIEWER);
         int num = 0;
+        System.out.println("+===========================================+");
+        System.out.println(" < 평균 " + average + "점 >");
         System.out.println("+-------------------------------------------+");
         for (RatingDTO r : list) {
             if (userController.selectByIdx(r.getRegisterIdx()).getGrade() == REVIEWER) {
@@ -130,7 +152,9 @@ public class RatingViewer {
 
         String message = "상세 보기할 평론 번호를 입력해주세요.\n[입력] 상세 보기 [0] 뒤로 가기";
         int userChoice = ScannerUtil.nextInt(SCANNER, message);
-        while (userChoice != 0 && !list.contains(ratingController.selectByIdx(userChoice))) {
+        while (userChoice != 0 &&
+                (ratingController.selectByIdx(userChoice) == null ||
+                        userController.selectByIdx(ratingController.selectByIdx(userChoice).getRegisterIdx()).getGrade() != REVIEWER)) {
             System.out.println("존재하지 않는 평론 번호입니다.");
             userChoice = ScannerUtil.nextInt(SCANNER, message);
         }
@@ -197,7 +221,10 @@ public class RatingViewer {
     private void printGeneralRatingList(int movieIdx) {
         // 0: 전체 1: 일반 2: 평론가
         ArrayList<RatingDTO> list = ratingController.selectByMovieIdx(movieIdx);
+        double average = calculateAverageRatingByUserGrade(list, GENERAL);
         int num = 0;
+        System.out.println("+===========================================+");
+        System.out.println(" < 평균 " + average + "점 >");
         System.out.println("+-------------------------------------------+");
         for (RatingDTO r : list) {
             // 등록자의 닉네임을 보여주기 위해서 UserViewer 연결해주기
@@ -216,13 +243,12 @@ public class RatingViewer {
             System.out.println(" * 등록된 평점이 없습니다.");
             System.out.println("+-------------------------------------------+");
         }
-        // 수정, 삭제 이후 추가할 것
-        // 관리자 권한 추가해줘야 함 230116
+        // 관리자 권한 추가함
         String message = "수정하거나 삭제할 평점의 번호를 입력해주세요.\n[입력] 수정/삭제 [0] 뒤로 가기";
         int userChoice = ScannerUtil.nextInt(SCANNER, message);
         while (userChoice != 0 &&
                 (ratingController.selectByIdx(userChoice) == null ||
-                        ratingController.selectByIdx(userChoice).getRegisterIdx() != login.getIdx())) {
+                        (ratingController.selectByIdx(userChoice).getRegisterIdx() != login.getIdx()) && login.getGrade() != MANAGER)) {
             System.out.println("권한이 없는 평점의 번호입니다.");
             userChoice = ScannerUtil.nextInt(SCANNER, message);
         }
@@ -235,8 +261,21 @@ public class RatingViewer {
                 deleteRating(userChoice);
             }
             printGeneralRatingList(movieIdx);
+        } else {
+            showMenu(movieIdx, login);
         }
-        showMenu(movieIdx, login);
+    }
+
+    private double calculateAverageRatingByUserGrade(ArrayList<RatingDTO> list, int userGrade) {
+        int sum = 0, count = 0;
+        for (RatingDTO r : list) {
+            if(userGrade == userController.selectByIdx(r.getRegisterIdx()).getGrade()) {
+                sum += r.getRating();
+                count++;
+            }
+        }
+
+        return (double)sum / count;
     }
 
     private void deleteRating(int idx) {

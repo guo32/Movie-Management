@@ -103,7 +103,7 @@ public class TheaterView {
         System.out.println("+===============================+");
 
         String message;
-        int userChoice = 0;
+        int userChoice;
         if (login.getGrade() == MANAGER) {
             message = "[1] 수정 [2] 삭제 [3] 상영 중인 영화 [4] 뒤로 가기";
             userChoice = ScannerUtil.nextInt(SCANNER, message, 1, 4);
@@ -123,6 +123,7 @@ public class TheaterView {
             screenInfoViewer.setLogin(login);
             screenInfoViewer.setMovieController(movieController);
             screenInfoViewer.showScreenInfoListForTheater(idx);
+            printTheaterInfo(idx);
         } else if (userChoice == 4) {
             printTheaterList();
         }
