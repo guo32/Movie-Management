@@ -20,6 +20,7 @@ public class UserViewer {
 
     private UserController userController;
     private GradeRequestController gradeRequestController;
+    private RatingController ratingController;
     private UserDTO login;
 
     private MovieViewer movieViewer;
@@ -46,6 +47,10 @@ public class UserViewer {
 
     public void setGradeRequestController(GradeRequestController gradeRequestController) {
         this.gradeRequestController = gradeRequestController;
+    }
+
+    public void setRatingController(RatingController ratingController) {
+        this.ratingController = ratingController;
     }
 
     public void showMenu() {
@@ -89,9 +94,9 @@ public class UserViewer {
     }
 
     private void registUser() {
-        String message = "사용할 아이디를 입력해주세요. (4~10자)";
+        String message = "사용할 아이디를 입력해주세요. (1~10자)";
         String username = ScannerUtil.nextLine(SCANNER, message);
-        String exp = "\\w{4,10}";
+        String exp = "\\w{1,10}";
 
         // 회원 아이디가 중복되는 경우 or 회원 아이디가 4자 미만 10자 초과인 경우
         while (userController.duplicateUsername(username) || !username.matches(exp)) {
@@ -99,10 +104,10 @@ public class UserViewer {
             username = ScannerUtil.nextLine(SCANNER, message);
         }
 
-        message = "비밀번호를 입력해주세요. (4~10자)";
+        message = "비밀번호를 입력해주세요. (1~10자)";
         String password = ScannerUtil.nextLine(SCANNER, message);
         while (!password.matches(exp)) {
-            System.out.println("비밀번호는 4자 이상 10자 이하로 입력할 수 있습니다.");
+            System.out.println("비밀번호는 1자 이상 10자 이하로 입력할 수 있습니다.");
             password = ScannerUtil.nextLine(SCANNER, message);
         }
 
@@ -208,8 +213,13 @@ public class UserViewer {
             message = "[1] 등급 변경 [0] 뒤로 가기";
             int select = ScannerUtil.nextInt(SCANNER, message, 0, 1);
             if (select == 1) {
-                updateUserGrade(userChoice);
-                showManageUserMenu();
+                if (userController.selectByIdx(userChoice).getUsername().equals("admin")) {
+                    System.out.println("기본 관리자는 등급을 변경할 수 없습니다.");
+                    printUserList();
+                } else {
+                    updateUserGrade(userChoice);
+                    showManageUserMenu();
+                }
             } else {
                 showManageUserMenu();
             }
@@ -240,16 +250,26 @@ public class UserViewer {
         userDTO.setGrade(userChoice);
 
         userController.update(userDTO);
+        // 관리자가 임의로 사용자의 등급을 변경하였을 때, 변경된 등급이 회원이 신청했던 등급과 같은 경우 신청 내역 제거
+        if (gradeRequestController != null) {
+            GradeRequestDTO gradeRequestDTO = gradeRequestController.selectByUserIdx(idx);
+            if (gradeRequestDTO != null) {
+                if (gradeRequestDTO.getGrade() == userChoice) {
+                    gradeRequestController.delete(gradeRequestDTO.getIdx());
+                }
+            }
+        }
+
         System.out.println("성공적으로 변경되었습니다.");
         printUserInfo(userDTO);
     }
 
     private void updateUser() {
         UserDTO userDTO = new UserDTO(login);
-        String message = "새 비밀번호를 입력해주세요. (4~10자)";
+        String message = "새 비밀번호를 입력해주세요. (1~10자)";
         String newPassword = ScannerUtil.nextLine(SCANNER, message);
-        while (!newPassword.matches("\\w{4,10}")) {
-            System.out.println("비밀번호는 4자 이상 10자 이하로 입력할 수 있습니다.");
+        while (!newPassword.matches("\\w{1,10}")) {
+            System.out.println("비밀번호는 1자 이상 10자 이하로 입력할 수 있습니다.");
             newPassword = ScannerUtil.nextLine(SCANNER, message);
         }
         userDTO.setPassword(newPassword);
@@ -280,12 +300,14 @@ public class UserViewer {
                 showUserMenu();
             } else {
                 // 탈퇴한 회원의 평점 처리
-                RatingController ratingController = new RatingController();
-                ArrayList<RatingDTO> temp = ratingController.selectAll();
-                if (temp != null) {
-                    for (RatingDTO r : temp) {
-                        if (r.getRegisterIdx() == login.getIdx()) {
-                            ratingController.delete(r.getIdx());
+                // RatingController ratingController = new RatingController();
+                if (ratingController != null) {
+                    ArrayList<RatingDTO> temp = ratingController.selectAll();
+                    if (temp != null) {
+                        for (RatingDTO r : temp) {
+                            if (r.getRegisterIdx() == login.getIdx()) {
+                                ratingController.delete(r.getIdx());
+                            }
                         }
                     }
                 }

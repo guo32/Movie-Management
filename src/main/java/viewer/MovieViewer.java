@@ -1,8 +1,10 @@
 package viewer;
 
 import controller.MovieController;
+import controller.ScreenInfoController;
 import controller.UserController;
 import model.MovieDTO;
+import model.ScreenInfoDTO;
 import model.UserDTO;
 import util.ScannerUtil;
 
@@ -24,6 +26,7 @@ public class MovieViewer {
     private final Scanner SCANNER;
 
     private MovieController movieController;
+    private ScreenInfoController screenInfoController;
     private UserController userController;
     private RatingViewer ratingViewer;
     private UserDTO login;
@@ -45,6 +48,10 @@ public class MovieViewer {
         this.userController = userController;
     }
 
+    public void setScreenInfoController(ScreenInfoController screenInfoController) {
+        this.screenInfoController = screenInfoController;
+    }
+
     public MovieController getMovieController() {
         return movieController;
     }
@@ -52,7 +59,7 @@ public class MovieViewer {
     public void showMenu(UserDTO login) {
         this.login = login;
         String message;
-        int userChoice = 0;
+        int userChoice;
         if (login.getGrade() != MANAGER) {
             message = "[1] 영화 목록 [0] 뒤로 가기";
             userChoice = ScannerUtil.nextInt(SCANNER, message, 0, 1);
@@ -128,7 +135,7 @@ public class MovieViewer {
         System.out.println("+===============================+");
 
         String message;
-        int userChoice = 0;
+        int userChoice;
         if (login.getGrade() != MANAGER) {
             message = "[3] 평점 [4] 영화 목록으로";
             userChoice = ScannerUtil.nextInt(SCANNER, message, 3, 4);
@@ -145,9 +152,10 @@ public class MovieViewer {
             // 평점
             ratingViewer.setUserController(userController);
             ratingViewer.showMenu(idx, login);
+            printMovieInfo(idx);
+        } else {
+            printMovieList();
         }
-
-        printMovieList();
     }
 
     private void updateMovie(int idx) {
@@ -172,6 +180,14 @@ public class MovieViewer {
         String yesNo = ScannerUtil.nextLine(SCANNER, message);
         if (yesNo.equalsIgnoreCase("Y")) {
             // 영화 삭제 시 상영 정보 삭제
+            if (screenInfoController != null) {
+                ArrayList<ScreenInfoDTO> screenInfoList = screenInfoController.selectByMovieIdx(idx);
+                if (!screenInfoList.isEmpty()) {
+                    for (ScreenInfoDTO s : screenInfoList) {
+                        screenInfoController.delete(s.getIdx());
+                    }
+                }
+            }
 
             movieController.delete(idx);
             System.out.println("정상적으로 삭제되었습니다.");

@@ -16,11 +16,16 @@ public class ScreenInfoViewer {
     private ScreenInfoController screenInfoController;
     private MovieController movieController;
     private TheaterView theaterView;
+    private MovieViewer movieViewer;
     private UserDTO login;
 
     public ScreenInfoViewer(Scanner scanner) {
         SCANNER = scanner;
         screenInfoController = new ScreenInfoController();
+    }
+
+    public void setMovieViewer(MovieViewer movieViewer) {
+        this.movieViewer = movieViewer;
     }
 
     public void setTheaterView(TheaterView theaterView) {
@@ -36,6 +41,8 @@ public class ScreenInfoViewer {
     }
 
     public void showScreenInfoListForTheater(int theaterIdx) {
+        movieViewer.setScreenInfoController(screenInfoController);
+        theaterView.setScreenInfoController(screenInfoController);
         ArrayList<ScreenInfoDTO> list = screenInfoController.selectByTheaterIdx(theaterIdx);
         System.out.println("+-------------------------------------------+");
         if(list.isEmpty()) {
@@ -57,7 +64,8 @@ public class ScreenInfoViewer {
                 // 수정
                 message = "수정할 상영 정보 번호를 입력해주세요.\n[입력] 수정 [0] 뒤로 가기";
                 int select = ScannerUtil.nextInt(SCANNER, message);
-                while (select != 0 && screenInfoController.selectByIdx(select) == null) {
+                while (select != 0 &&
+                        (screenInfoController.selectByIdx(select) == null || screenInfoController.selectByIdx(select).getTheaterIdx() != theaterIdx)) {
                     System.out.println("존재하지 않는 상영 정보 번호입니다.");
                     select = ScannerUtil.nextInt(SCANNER, message);
                 }
@@ -70,7 +78,8 @@ public class ScreenInfoViewer {
                 // 삭제
                 message = "삭제할 상영 정보 번호를 입력해주세요.\n[입력] 삭제 [0] 뒤로 가기";
                 int select = ScannerUtil.nextInt(SCANNER, message);
-                while (select != 0 && screenInfoController.selectByIdx(select) == null) {
+                while (select != 0 &&
+                        (screenInfoController.selectByIdx(select) == null || screenInfoController.selectByIdx(select).getTheaterIdx() != theaterIdx)) {
                     System.out.println("존재하지 않는 상영 정보 번호입니다.");
                     select = ScannerUtil.nextInt(SCANNER, message);
                 }
@@ -102,6 +111,7 @@ public class ScreenInfoViewer {
         }
         String playtime = startTime + " ~ " + endTime;
         screenInfoDTO.setPlaytime(playtime);
+        screenInfoController.update(screenInfoDTO);
         System.out.println("정상적으로 수정되었습니다.");
 
         showScreenInfoListForTheater(screenInfoDTO.getTheaterIdx());

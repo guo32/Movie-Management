@@ -1,8 +1,10 @@
 package viewer;
 
 import controller.MovieController;
+import controller.ScreenInfoController;
 import controller.TheaterController;
 import model.MovieDTO;
+import model.ScreenInfoDTO;
 import model.TheaterDTO;
 import model.UserDTO;
 import util.ScannerUtil;
@@ -15,6 +17,7 @@ public class TheaterView {
     private final int MANAGER = 3;
     private final TheaterController theaterController;
     private MovieController movieController;
+    private ScreenInfoController screenInfoController;
     private ScreenInfoViewer screenInfoViewer;
     private UserDTO login;
 
@@ -31,6 +34,10 @@ public class TheaterView {
         this.movieController = movieController;
     }
 
+    public void setScreenInfoController(ScreenInfoController screenInfoController) {
+        this.screenInfoController = screenInfoController;
+    }
+
     public void setScreenInfoViewer(ScreenInfoViewer screenInfoViewer) {
         this.screenInfoViewer = screenInfoViewer;
     }
@@ -40,8 +47,15 @@ public class TheaterView {
     }
 
     public void showMenu() {
-        String message = "[1] 극장 목록 [2] 극장 등록 [0] 뒤로 가기";
-        int userChoice = ScannerUtil.nextInt(SCANNER, message, 0, 2);
+        String message;
+        int userChoice;
+        if (login.getGrade() == MANAGER) {
+            message = "[1] 극장 목록 [2] 극장 등록 [0] 뒤로 가기";
+            userChoice = ScannerUtil.nextInt(SCANNER, message, 0, 2);
+        } else {
+            message = "[1] 극장 목록 [0] 뒤로 가기";
+            userChoice = ScannerUtil.nextInt(SCANNER, message, 0, 1);
+        }
         if (userChoice == 1) {
             printTheaterList();
         } else if (userChoice == 2) {
@@ -154,6 +168,16 @@ public class TheaterView {
         String message = "정말로 삭제하시겠습니까?\n[Y] 삭제 [N] 취소";
         String yesNo = ScannerUtil.nextLine(SCANNER, message);
         if (yesNo.equalsIgnoreCase("Y")) {
+            // 극장 삭제 시 상영 정보 삭제
+            if (screenInfoController != null) {
+                ArrayList<ScreenInfoDTO> screenInfoList = screenInfoController.selectByTheaterIdx(idx);
+                if (!screenInfoList.isEmpty()) {
+                    for (ScreenInfoDTO s : screenInfoList) {
+                        screenInfoController.delete(s.getIdx());
+                    }
+                }
+            }
+
             theaterController.delete(idx);
             System.out.println("정상적으로 삭제되었습니다.");
             printTheaterList();

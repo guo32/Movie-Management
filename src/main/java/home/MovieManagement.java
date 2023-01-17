@@ -24,6 +24,7 @@ public class MovieManagement {
         theaterView.setScreenInfoViewer(screenInfoViewer);
 
         screenInfoViewer.setTheaterView(theaterView);
+        screenInfoViewer.setMovieViewer(movieViewer);
 
         ratingViewer.setUserViewer(userViewer);
 

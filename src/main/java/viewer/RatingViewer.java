@@ -36,6 +36,7 @@ public class RatingViewer {
 
     public void showMenu(int movieIdx, UserDTO login) {
         this.login = login;
+        userViewer.setRatingController(ratingController);
         String message;
         int userChoice;
         if (login.getGrade() == MANAGER) {
@@ -111,11 +112,12 @@ public class RatingViewer {
         // 관리자 권한 추가함
         String message = "수정하거나 삭제할 평점의 번호를 입력해주세요.\n[입력] 수정/삭제 [0] 뒤로 가기";
         int userChoice = ScannerUtil.nextInt(SCANNER, message);
-        while (userChoice != 0 &&
-                (ratingController.selectByIdx(userChoice) == null ||
-                        (ratingController.selectByIdx(userChoice).getRegisterIdx() != login.getIdx()) && login.getGrade() != MANAGER)) {
+        RatingDTO ratingDTO = ratingController.selectByIdx(userChoice);
+        while (userChoice != 0 && (ratingDTO == null || ratingDTO.getMovieIdx() != movieIdx ||
+                        (ratingDTO.getRegisterIdx() != login.getIdx()) && login.getGrade() != MANAGER)) {
             System.out.println("권한이 없는 평점의 번호입니다.");
             userChoice = ScannerUtil.nextInt(SCANNER, message);
+            ratingDTO = ratingController.selectByIdx(userChoice);
         }
         if (userChoice != 0) {
             message = "[1] 수정 [2] 삭제 [0] 뒤로 가기";
@@ -152,15 +154,15 @@ public class RatingViewer {
 
         String message = "상세 보기할 평론 번호를 입력해주세요.\n[입력] 상세 보기 [0] 뒤로 가기";
         int userChoice = ScannerUtil.nextInt(SCANNER, message);
-        while (userChoice != 0 &&
-                (ratingController.selectByIdx(userChoice) == null ||
-                        userController.selectByIdx(ratingController.selectByIdx(userChoice).getRegisterIdx()).getGrade() != REVIEWER)) {
-            System.out.println("존재하지 않는 평론 번호입니다.");
+        RatingDTO ratingDTO = ratingController.selectByIdx(userChoice);
+        while (userChoice != 0 && (ratingDTO == null || ratingDTO.getMovieIdx() != movieIdx ||
+                userController.selectByIdx(ratingDTO.getRegisterIdx()).getGrade() != REVIEWER)) {
+            System.out.println("권한이 없는 평론의 번호입니다.");
             userChoice = ScannerUtil.nextInt(SCANNER, message);
+            ratingDTO = ratingController.selectByIdx(userChoice);
         }
         if (userChoice != 0) {
             printReviewerReview(userChoice);
-            printGeneralRatingList(movieIdx);
         } else {
             showMenu(movieIdx, login);
         }
@@ -176,7 +178,8 @@ public class RatingViewer {
         System.out.println(" [평론]");
         System.out.println(" " + ratingDTO.getReview());
         System.out.println("+===============================+");
-        if (ratingDTO.getRegisterIdx() == idx || login.getGrade() == MANAGER) {
+        // 로그인한 사람으로 바꾸기
+        if ((ratingDTO.getRegisterIdx() == login.getIdx() && login.getGrade() == REVIEWER) || login.getGrade() == MANAGER) {
             String message = "[1] 수정 [2] 삭제 [0] 뒤로 가기";
             int userChoice = ScannerUtil.nextInt(SCANNER, message, 0, 2);
             if (userChoice == 1) {
@@ -186,8 +189,9 @@ public class RatingViewer {
             } else if (userChoice == 2) {
                 // 삭제
                 deleteReview(idx);
+                printReviewerReviewList(ratingDTO.getMovieIdx());
             } else {
-                printGeneralRatingList(ratingDTO.getMovieIdx());
+                printReviewerReviewList(ratingDTO.getMovieIdx());
             }
         }
     }
@@ -246,11 +250,12 @@ public class RatingViewer {
         // 관리자 권한 추가함
         String message = "수정하거나 삭제할 평점의 번호를 입력해주세요.\n[입력] 수정/삭제 [0] 뒤로 가기";
         int userChoice = ScannerUtil.nextInt(SCANNER, message);
-        while (userChoice != 0 &&
-                (ratingController.selectByIdx(userChoice) == null ||
-                        (ratingController.selectByIdx(userChoice).getRegisterIdx() != login.getIdx()) && login.getGrade() != MANAGER)) {
+        RatingDTO ratingDTO = ratingController.selectByIdx(userChoice);
+        while (userChoice != 0 && (ratingDTO == null || ratingDTO.getMovieIdx() != movieIdx ||
+                (ratingDTO.getRegisterIdx() != login.getIdx()) && login.getGrade() != MANAGER)) {
             System.out.println("권한이 없는 평점의 번호입니다.");
             userChoice = ScannerUtil.nextInt(SCANNER, message);
+            ratingDTO = ratingController.selectByIdx(userChoice);
         }
         if (userChoice != 0) {
             message = "[1] 수정 [2] 삭제 [0] 뒤로 가기";

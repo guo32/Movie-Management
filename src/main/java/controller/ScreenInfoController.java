@@ -55,4 +55,14 @@ public class ScreenInfoController {
         }
         return temp;
     }
+
+    public ArrayList<ScreenInfoDTO> selectByMovieIdx(int movieIdx) {
+        ArrayList<ScreenInfoDTO> temp = new ArrayList<>();
+        for (ScreenInfoDTO s : list) {
+            if (s.getMovieIdx() == movieIdx) {
+                temp.add(new ScreenInfoDTO(s));
+            }
+        }
+        return temp;
+    }
 }
