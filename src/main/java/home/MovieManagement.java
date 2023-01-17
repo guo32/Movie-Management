@@ -31,5 +31,7 @@ public class MovieManagement {
         gradeRequestViewer.setUserViewer(userViewer);
 
         userViewer.showMenu();
+
+        // 추가: 예약 관리
     }
 }
